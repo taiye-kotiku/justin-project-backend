@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>dogcoloringbooks.com | AI Dog Coloring Book Creator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Balsamiq+Sans:wght@700&family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+    "react/": "https://aistudiocdn.com/react@^19.1.1/",
+    "react": "https://aistudiocdn.com/react@^19.1.1",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.21.0",
+    "jszip": "https://aistudiocdn.com/jszip@^3.10.1/dist/jszip.min.js"
+  }
+}
+</script>
+<style>
+  body {
+    font-family: 'Comic Neue', cursive;
+    background-color: #ffffff; /* Simple white fallback */
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3e%3cstyle%3e.p%7bstroke:%23a1a1aa;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-linejoin:round;filter:url(%23pencil-texture)%7d%3c/style%3e%3cdefs%3e%3cfilter id='pencil-texture' x='-20%25' y='-20%25' width='140%25' height='140%25'%3e%3cfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' result='turbulence'/%3e%3cfeDisplacementMap in='SourceGraphic' in2='turbulence' scale='1.5' xChannelSelector='R' yChannelSelector='G' result='displaced'/%3e%3c/filter%3e%3cg id='paw'%3e%3cpath d='M50 85 C 30 95, 25 70, 40 60 Q 50 50, 60 60 C 75 70, 70 95, 50 85 Z M35 52 C 28 58, 28 42, 35 38 C 42 34, 48 42, 42 52 Z M50 42 C 43 48, 43 32, 50 28 C 57 24, 63 32, 57 42 Z M65 52 C 58 58, 58 42, 65 38 C 72 34, 78 42, 72 52 Z M80 65 C 73 71, 73 55, 80 51 C 87 47, 93 55, 87 65 Z' /%3e%3c/g%3e%3c/defs%3e%3crect width='100%25' height='100%25' fill='%23fff'/%3e%3cuse href='%23paw' class='p' transform='translate(15, 20) rotate(-10) scale(0.35)' /%3e%3cuse href='%23paw' class='p' transform='translate(70, 10) rotate(25) scale(0.2)' /%3e%3cuse href='%23paw' class='p' transform='translate(80, 75) rotate(15) scale(0.4)' /%3e%3cuse href='%23paw' class='p' transform='translate(20, 85) rotate(-35) scale(0.25)' /%3e%3c/svg%3e");
+    background-size: 120px 120px;
+  }
+  .font-header {
+    font-family: 'Balsamiq Sans', cursive;
+  }
+  
+  /* Paper texture for main panel - now a clean white page */
+  .bg-paper-texture {
+    background-color: #ffffff; /* Clean white */
+    background-image: repeating-linear-gradient(
+      -45deg, 
+      transparent, 
+      transparent 1px, 
+      rgba(0,0,0,0.015) 1px, 
+      rgba(0,0,0,0.015) 2px
+    );
+  }
+
+  /* New Crayon Outline Title Style */
+  .crayon-title-letter {
+    -webkit-text-stroke: 2px #4a4a4a;
+    text-stroke: 2px #4a4a4a;
+    paint-order: stroke fill;
+    text-shadow: none; /* Override any inherited text-shadow */
+  }
+
+  /* New Crayon Text Colors */
+  .text-crayon-rose { color: #f43f5e; }
+  .text-crayon-amber { color: #fbbf24; }
+  .text-crayon-emerald { color: #34d399; }
+  .text-crayon-sky { color: #38bdf8; }
+  .text-crayon-teal { color: #2dd4bf; }
+  .text-crayon-violet { color: #8b5cf6; }
+  .text-crayon-fuchsia { color: #d946ef; }
+
+  /* New "colored-in sticker" text style */
+  .text-colored-in {
+    color: #3f3f46; /* Dark zinc color */
+    /* This creates a very subtle texture within the text itself */
+    background-image: repeating-linear-gradient(
+      45deg, 
+      transparent, 
+      transparent 1px, 
+      rgba(255,255,255,0.3) 1px, 
+      rgba(255,255,255,0.3) 2px
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    filter: drop-shadow(2px 2px 0px #a1a1aa); /* Softer zinc shadow */
+  }
+
+  /* New Crayon Style Gradients */
+  .bg-crayon-teal { background-image: linear-gradient(to bottom, #2dd4bf, #14b8a6); }
+  .bg-crayon-teal-light { background-image: linear-gradient(to bottom, #99f6e4, #5eead4); }
+  .bg-crayon-amber { background-image: linear-gradient(to bottom, #fbbf24, #f59e0b); }
+  .bg-crayon-amber-light { background-image: linear-gradient(to bottom, #fde68a, #fcd34d); }
+  .bg-crayon-rose { background-image: linear-gradient(to bottom, #f43f5e, #e11d48); }
+  .bg-crayon-rose-light { background-image: linear-gradient(to bottom, #fecdd3, #fda4af); }
+  .bg-crayon-sky { background-image: linear-gradient(to bottom, #38bdf8, #0ea5e9); }
+  .bg-crayon-sky-light { background-image: linear-gradient(to bottom, #bae6fd, #7dd3fc); }
+  .bg-crayon-emerald { background-image: linear-gradient(to bottom, #34d399, #10b981); }
+  .bg-crayon-emerald-light { background-image: linear-gradient(to bottom, #a7f3d0, #6ee7b7); }
+  .bg-crayon-violet { background-image: linear-gradient(to bottom, #8b5cf6, #7c3aed); }
+
+  .sketch-border {
+    border-radius: 0.75rem 0.6rem 0.8rem 0.5rem/0.5rem 0.7rem 0.6rem 0.8rem;
+    border: 3px solid #4a4a4a;
+  }
+  .sketch-shadow {
+    box-shadow: 5px 5px 0px 0px #4a4a4a;
+  }
+   .sketch-shadow-sm {
+    box-shadow: 2px 2px 0px 0px rgba(0,0,0,0.4);
+  }
+  .sketch-button {
+    border-radius: 0.75rem 0.6rem 0.8rem 0.5rem/0.5rem 0.7rem 0.6rem 0.8rem;
+    border: 3px solid #4a4a4a;
+    box-shadow: 4px 4px 0px 0px #4a4a4a;
+    transition: transform 0.15s ease-out, box-shadow 0.15s ease-out, filter 0.15s ease-out;
+    color: #3f3f46; /* Dark text for readability */
+    text-shadow: none;
+  }
+  .sketch-button:hover:not(:disabled) {
+    transform: translate(2px, 2px) scale(1.02);
+    box-shadow: 2px 2px 0px 0px #4a4a4a;
+    filter: brightness(1.05);
+  }
+  .sketch-button:active:not(:disabled) {
+    transform: translate(4px, 4px) scale(0.98);
+    box-shadow: 0px 0px 0px 0px #4a4a4a;
+  }
+  .sketch-input {
+     border-radius: 0.75rem 0.6rem 0.8rem 0.5rem/0.5rem 0.7rem 0.6rem 0.8rem !important;
+     border: 3px solid #4a4a4a !important;
+     box-shadow: inset 2px 2px 0px 0px rgba(0,0,0,0.1);
+  }
+
+  .accent-teal-500 {
+    accent-color: #14b8a6;
+  }
+
+  /* New Social Button Styles */
+  .social-button-group {
+    background-color: #4A4A4A; /* Dark grey similar to image */
+    border-radius: 12px;
+    padding: 10px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    box-shadow: inset 0 2px 3px rgba(0,0,0,0.25); /* Inner shadow for depth */
+  }
+
+  .social-button {
+    border-radius: 8px;
+    padding: 8px;
+    border: none;
+    cursor: pointer;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0px 3px 0px 0px rgba(0,0,0,0.3); /* The dark extruded shadow */
+    transform: translateY(0);
+    transition: transform 150ms cubic-bezier(0, 0, 0.58, 1), box-shadow 150ms cubic-bezier(0, 0, 0.58, 1);
+  }
+  .social-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0px 5px 0px 0px rgba(0,0,0,0.3);
+  }
+  .social-button:active {
+    transform: translateY(1px);
+    box-shadow: 0px 1px 0px 0px rgba(0,0,0,0.3);
+    transition: transform 50ms;
+  }
+
+
+  @keyframes wiggle {
+    0%, 100% { transform: translate(2px, 2px) scale(1.03) rotate(-2deg); }
+    50% { transform: translate(2px, 2px) scale(1.03) rotate(2deg); }
+  }
+  .interactive-wiggle-hover:hover:not(:disabled) {
+    animation: wiggle 0.3s ease-in-out infinite;
+  }
+
+  @keyframes scale-in {
+    from { transform: scale(0.3) rotate(-15deg); opacity: 0; }
+    to { transform: scale(1) rotate(0deg); opacity: 1; }
+  }
+  .animate-scale-in {
+    animation: scale-in 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+  
+  @keyframes pulse-subtle {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+  .animate-pulse-subtle {
+    animation: pulse-subtle 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes cta-glow-pulse {
+    0%, 100% { box-shadow: 4px 4px 0px 0px #4a4a4a, 0 0 5px rgba(20, 184, 166, 0); }
+    50% { box-shadow: 4px 4px 0px 0px #4a4a4a, 0 0 15px rgba(20, 184, 166, 0.7); }
+  }
+  .cta-glow:not(:disabled) {
+    animation: cta-glow-pulse 2.5s infinite;
+  }
+</style>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
