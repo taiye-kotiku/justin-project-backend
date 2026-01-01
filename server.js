@@ -14,6 +14,45 @@ app.use(express.json({ limit: '50mb' }));
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
+const N8N_WEBHOOK_URL = process.env.N8N_LOGGING_WEBHOOK || 'https://justgurian.app.n8n.cloud/webhook/log-generation-event';
+
+// Helper: Send logging event to N8N (fire and forget)
+async function logToN8N(eventData) {
+  try {
+    const payload = {
+      timestamp: new Date().toISOString(),
+      eventType: 'image_generation',
+      status: eventData.status,
+      dogName: eventData.dogName,
+      originalImageBase64: eventData.originalImageBase64,
+      generatedImageBase64: eventData.generatedImageBase64,
+      compositeImageBase64: eventData.compositeImageBase64,
+      theme: eventData.theme,
+      template: eventData.template,
+      mimeType: eventData.mimeType,
+      instagramPostId: eventData.instagramPostId,
+      error: eventData.error
+    };
+
+    console.log('📡 Sending logging event to N8N...');
+    const response = await fetch(N8N_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      timeout: 5000 // Don't wait too long
+    });
+
+    if (response.ok) {
+      console.log('✅ Event logged to N8N successfully');
+    } else {
+      console.warn('⚠️ N8N logging returned non-OK status:', response.status);
+    }
+  } catch (error) {
+    // Non-blocking: log errors but don't fail the main operation
+    console.warn('⚠️ N8N logging error (non-critical):', error.message);
+  }
+}
+
 // Helper: Download image from URL and convert to base64
 async function downloadImageAsBase64(url) {
   // Handle Google Drive URLs
@@ -198,6 +237,62 @@ async function uploadUrlToBlotato(imageUrl) {
 }
 
 // ============================================
+// API ENDPOINT 0.5: Generate Single Image (from base64)
+// ============================================
+app.post('/api/generate-single', async (req, res) => {
+  try {
+    const { dogName, imageBase64, mimeType, theme, petHandle } = req.body;
+
+    if (!dogName || !imageBase64 || !mimeType) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Missing required fields: dogName, imageBase64, mimeType' 
+      });
+    }
+
+    console.log('🎨 Generating single coloring page for:', dogName);
+
+    // Generate the coloring page from base64
+    const generatedImage = await generateColoringPage(
+      imageBase64,
+      mimeType,
+      theme || 'Adventure',
+      dogName
+    );
+
+    // Return with data URLs for immediate frontend use
+    const originalDataUrl = `data:${mimeType};base64,${imageBase64}`;
+    const generatedDataUrl = `data:${generatedImage.mimeType};base64,${generatedImage.base64}`;
+
+    // Log to N8N (fire and forget)
+    logToN8N({
+      status: 'success',
+      dogName,
+      originalImageBase64: imageBase64,
+      generatedImageBase64: generatedImage.base64,
+      theme: theme || 'Adventure',
+      mimeType: generatedImage.mimeType
+    });
+
+    res.json({
+      success: true,
+      originalImageUrl: originalDataUrl,
+      generatedImageUrl: generatedDataUrl,
+      originalImageBase64: imageBase64,
+      generatedImageBase64: generatedImage.base64,
+      mimeType: generatedImage.mimeType
+    });
+
+  } catch (error) {
+    console.error('❌ Error generating single coloring page:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
+// ============================================
 // API ENDPOINT 1: Generate Batch of Images
 // ============================================
 app.post('/api/generate-batch', async (req, res) => {
@@ -258,9 +353,11 @@ app.post('/api/generate-batch', async (req, res) => {
 // ============================================
 app.post('/api/create-marketing-image', async (req, res) => {
   try {
-    const { 
-      originalImageBase64, 
-      coloringImageBase64, 
+    let { 
+      originalImageBase64,
+      coloringImageBase64,
+      originalImageUrl,
+      generatedImageUrl,
       dogName,
       headerLine1 = 'TURN ONE PICTURE OF YOUR DOG INTO',
       headerLine2 = 'ONE HUNDRED PICTURES OF YOUR DOG!',
@@ -272,12 +369,33 @@ app.post('/api/create-marketing-image', async (req, res) => {
 
     console.log('Creating customizable marketing composite for:', dogName);
 
+    // Handle both base64 and URL inputs
+    let originalBase64 = originalImageBase64;
+    let coloringBase64 = coloringImageBase64;
+
+    // If URLs provided instead of base64, extract the base64 part
+    if (!originalBase64 && originalImageUrl) {
+      if (originalImageUrl.startsWith('data:')) {
+        originalBase64 = originalImageUrl.split(',')[1];
+      } else {
+        originalBase64 = await downloadImageAsBase64(originalImageUrl);
+      }
+    }
+
+    if (!coloringBase64 && generatedImageUrl) {
+      if (generatedImageUrl.startsWith('data:')) {
+        coloringBase64 = generatedImageUrl.split(',')[1];
+      } else {
+        coloringBase64 = await downloadImageAsBase64(generatedImageUrl);
+      }
+    }
+
     const originalPart = {
-      inlineData: { data: originalImageBase64, mimeType: 'image/jpeg' }
+      inlineData: { data: originalBase64, mimeType: 'image/jpeg' }
     };
     
     const coloringPart = {
-      inlineData: { data: coloringImageBase64, mimeType: 'image/jpeg' }
+      inlineData: { data: coloringBase64, mimeType: 'image/jpeg' }
     };
 
     const prompt = `You are creating a professional Instagram marketing post image. This image will be posted to Instagram, so you MUST follow these CRITICAL requirements:
@@ -349,10 +467,26 @@ Style: Bold text with arrow, positioned to the right of the circular photo
       for (const part of candidate.content.parts) {
         if (part.inlineData && part.inlineData.data) {
           console.log('✅ Customizable marketing composite created!');
+          const mimeType = part.inlineData.mimeType || 'image/png';
+          const compositeDataUrl = `data:${mimeType};base64,${part.inlineData.data}`;
+          
+          // Log to N8N (fire and forget)
+          logToN8N({
+            status: 'success',
+            dogName: req.body.dogName,
+            originalImageBase64: originalBase64,
+            generatedImageBase64: coloringBase64,
+            compositeImageBase64: part.inlineData.data,
+            template: 'customizable',
+            mimeType: mimeType
+          });
+          
           return res.json({
             success: true,
             imageBase64: part.inlineData.data,
-            mimeType: part.inlineData.mimeType,
+            compositeImageBase64: part.inlineData.data,
+            compositeImageUrl: compositeDataUrl,
+            mimeType: mimeType,
             template: 'customizable'
           });
         }
@@ -430,12 +564,26 @@ app.post('/api/generate-marketing-composite', async (req, res) => {
       for (const part of candidate.content.parts) {
         if (part.inlineData && part.inlineData.data) {
           console.log('✅ Final Composite created!');
+          
+          // Log to N8N (fire and forget)
+          logToN8N({
+            status: 'success',
+            dogName: dogName,
+            originalImageBase64: origBase64,
+            generatedImageBase64: colorBase64,
+            compositeImageBase64: part.inlineData.data,
+            template: 'polaroid',
+            mimeType: part.inlineData.mimeType || 'image/png'
+          });
+          
           return res.json({
-            success: true,
-            imageBase64: part.inlineData.data,
-            mimeType: part.inlineData.mimeType,
-            template: 'polaroid',
-            style: 'square-fitted-tilted' // Updated style name
+            success: true,
+            imageBase64: part.inlineData.data,
+            compositeImageBase64: part.inlineData.data,
+            compositeImageUrl: `data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`,
+            mimeType: part.inlineData.mimeType,
+            template: 'polaroid',
+            style: 'square-fitted-tilted'
           });
         }
       }
@@ -464,18 +612,38 @@ app.post('/api/generate-rebel-composite', async (req, res) => {
   try {
     const { originalImageBase64, coloringImageBase64, dogName } = req.body;
 
-    if (!originalImageBase64 || !coloringImageBase64 || !dogName) {
+    // Handle both base64 and URL inputs
+    let origBase64 = originalImageBase64;
+    let colorBase64 = coloringImageBase64;
+    
+    if (!origBase64 && req.body.originalImageUrl) {
+      if (req.body.originalImageUrl.startsWith('data:')) {
+        origBase64 = req.body.originalImageUrl.split(',')[1];
+      } else {
+        origBase64 = await downloadImageAsBase64(req.body.originalImageUrl);
+      }
+    }
+
+    if (!colorBase64 && req.body.generatedImageUrl) {
+      if (req.body.generatedImageUrl.startsWith('data:')) {
+        colorBase64 = req.body.generatedImageUrl.split(',')[1];
+      } else {
+        colorBase64 = await downloadImageAsBase64(req.body.generatedImageUrl);
+      }
+    }
+
+    if (!origBase64 || !colorBase64 || !dogName) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
     console.log('Creating Rebel composite for:', dogName);
 
     const originalPart = {
-      inlineData: { data: originalImageBase64, mimeType: 'image/jpeg' }
+      inlineData: { data: origBase64, mimeType: 'image/jpeg' }
     };
     
     const coloringPart = {
-      inlineData: { data: coloringImageBase64, mimeType: 'image/jpeg' }
+      inlineData: { data: colorBase64, mimeType: 'image/jpeg' }
     };
 
     // PRODUCTION-READY PROMPT with detailed layout instructions
@@ -726,6 +894,14 @@ app.post('/api/post-to-instagram', async (req, res) => {
 
     console.log('✅ Post queued successfully!');
     console.log('Post Submission ID:', data.postSubmissionId);
+
+    // Log to N8N (fire and forget)
+    logToN8N({
+      status: 'success',
+      eventType: 'instagram_post',
+      instagramPostId: data.postSubmissionId,
+      blotatoMediaUrl: blotatoMediaUrl
+    });
 
     res.json({
       success: true,
