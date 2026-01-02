@@ -533,56 +533,50 @@ app.post('/api/generate-marketing-composite', async (req, res) => {
       }
     };
 
-    const prompt = `Create a premium scrapbook-style marketing composite for dog coloring books. This is a sophisticated Instagram post with a precise, professional layout.
+    const prompt = `Create a premium scrapbook-style marketing composite for dog coloring books. This is a sophisticated Instagram post with precise layout specifications.
 
 **CANVAS:** 1080x1080px square
 
-**BACKGROUND:** Rough, textured kraft paper (visible paper grain, slight discoloration spots, authentic scrapbook aesthetic). NOT plain white - should have visible texture and a slightly aged/vintage feel.
+**BACKGROUND:** CRITICAL - Must have visible rough, textured kraft paper appearance with:
+- Visible paper grain texture (NOT smooth or plain)
+- Color variation (aged/vintage look with slight brown/tan spots)
+- Paper fiber details visible
+- Authentic weathered scrapbook paper aesthetic
+- This is the most important visual element after the big polaroid
 
-**LAYOUT - EXACT POSITIONING:**
+**LAYOUT - EXACT SPECIFICATIONS:**
 
-1. **BIG POLAROID (MAIN COLORING IMAGE) - THE HERO**
-   - Contains: The provided coloring book page illustration (full portrait image)
-   - Size: Takes up 90-95% of the entire canvas (both width AND height)
-   - Position: Nearly fills the entire canvas with minimal margins
-   - Polaroid Frame: Classic white border - 6-8px on sides/top, 20px white bottom border (for dog name)
-   - Shadow: Strong, visible drop shadow underneath the big polaroid on the rough paper background
-   - Dog Name: "${dogName}" written elegantly in semi-cursive black font on the white bottom polaroid border
-   - Orientation: Portrait/vertical
-   - The coloring book illustration should be very large and prominent
+1. **BIG POLAROID (MAIN COLORING IMAGE) - THE DOMINANT ELEMENT**
+   - Contains: The provided coloring book page illustration
+   - Size: VERY LARGE - occupies 80-85% of the entire canvas space
+   - Position: Centered, with minimal white space around it
+   - Polaroid Frame: White border - 6px sides/top, 20px bottom
+   - Dog Name: "${dogName}" in elegant black script on the white bottom border
+   - Shadow: Strong drop shadow underneath
+   - The coloring page should be EXTREMELY PROMINENT and take up most of the visible space
 
-2. **SMALL POLAROID (ORIGINAL DOG PHOTO)**
-   - Contains: The provided original dog photo
-   - Size: Approximately 20-25% the width of the big polaroid (small secondary element)
-   - Position: CLIPPED TO LEFT EDGE, VERTICALLY CENTERED
-     * Horizontal: Overlaps the LEFT EDGE of big polaroid, extending outward to the left
-     * Vertical: Positioned at approximately 45-55% down from top (middle of big polaroid height)
-     * The small polaroid should look like it's clipped/fastened to the big polaroid
-   - Polaroid Frame: Classic white border, same proportions as big polaroid (minimal borders)
-   - Shadow: Subtle drop shadow to show depth
+2. **SMALL POLAROID (ORIGINAL DOG PHOTO) - SECONDARY ACCENT**
+   - Contains: Original dog photo
+   - Size: 15-20% the width of big polaroid (very small)
+   - Position: Left side, vertically centered (50% down from top)
+   - Overlap: Slightly overlaps the left edge of big polaroid
+   - Shadow: Subtle
 
-3. **PAPERCLIP (METAL FASTENER)**
-   - Style: Realistic metal paperclip, silver/gray color
-   - Size: 30-40px (SMALLER than before - more proportional to the small polaroid)
-   - Positioning: CRITICAL - VERTICAL MIDDLE OF LEFT EDGE
-     * Horizontal: At the LEFT EDGE/BORDER of the big polaroid
-     * Vertical: At approximately 45-55% down from top (vertical center of big polaroid)
-     * The paperclip should appear to be fastening/clipping the small polaroid to the big polaroid
-   - Appearance: Realistic, looks like it's holding the two polaroids together
-   - Shadow: Subtle shadow for 3D effect
+3. **PAPERCLIP - SMALL FASTENER**
+   - Size: 20-30px (SMALL, not prominent)
+   - Position: At vertical middle (50%) of big polaroid's left edge
+   - Style: Realistic metal, silver/gray
+   - Purpose: Functional fastener, not decorative
 
-**CRITICAL DESIGN NOTES:**
-- NO COLORED PENCILS - Remove entirely
-- The big polaroid DOMINATES the composition (90-95% of canvas)
-- The small polaroid is SECONDARY and much smaller
-- Rough, textured kraft paper background is ESSENTIAL for the aesthetic
-- The paperclip is small and functional, not decorative
-- Clear visual hierarchy: Big coloring page >> Small original photo >> Textured background
-- All elements cast realistic shadows
-- No text overlays except dog name on big polaroid border
-- Color palette: Natural dog colors + white polaroid borders + kraft paper texture + silver paperclip
+**CRITICAL REQUIREMENTS:**
+- NO PENCILS OR COLORED PENCILS ANYWHERE - completely remove
+- NO decorative elements besides the two polaroids and paperclip
+- BIG POLAROID must be 80-85% of canvas (NOT 60%)
+- BACKGROUND must show visible paper texture/grain (NOT plain white)
+- PAPERCLIP must be 20-30px (smaller than current)
+- Clean, minimal composition focused on the transformation
 
-This layout showcases the transformation (original dog → coloring book page) in an artistic, professional scrapbook style suitable for Instagram marketing.`;
+This is a scrapbook-style transformation showcase with textured background and clean layout.`;
 
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
