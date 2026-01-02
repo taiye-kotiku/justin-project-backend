@@ -533,45 +533,60 @@ app.post('/api/generate-marketing-composite', async (req, res) => {
       }
     };
 
-    const prompt = `Create a premium marketing composite showcasing a dog coloring book transformation in a sophisticated scrapbook style. This is a high-end Instagram post featuring professional Polaroid frames, colored pencils, and artistic elements.
+    const prompt = `Create a premium scrapbook-style marketing composite for dog coloring books. This is a sophisticated Instagram post with a precise, professional layout.
 
-**Canvas Details:**
-- Size: 1080x1080px (Instagram square)
-- Background: Clean white
-- Main Polaroid: Large, prominent frame containing the coloring book illustration
-- Small Polaroid: Smaller frame with the original dog photo
-- Positioning: Small Polaroid overlaps large Polaroid on the left side
+**CANVAS:** 1080x1080px square
 
-**Large Polaroid (Main Image):**
-- Contains: The provided coloring book illustration
-- Frame proportions: Minimal borders (10-15px sides/top, 30-40px bottom)
-- Size: Takes up approximately 95-98% of canvas height
-- Name placement: Dog's name ('${dogName}') written elegantly on the white bottom border in a semi-cursive or elegant font
-- Orientation: Portrait/vertical
+**BACKGROUND:** Rough, textured white paper (kraft/scrapbook style) filling entire canvas
 
-**Small Polaroid (Original Photo):**
-- Contains: The provided original dog photo
-- Size: Approximately 35-40% the width of the large Polaroid
-- Positioning: Middle-left area, overlapping the large Polaroid
-- Frame: Traditional Polaroid style
+**LAYOUT - EXACT POSITIONING:**
 
-**Decorative Elements:**
-- Colored pencils (yellow, blue, pink, green): Placed at 2 alternate corners
-- Pencil style: Realistic, vibrant, visible tips
-- Pencil size: 60-80px, proportional
-- Paperclip: Realistic metal paperclip (40-60px, normal size)
-- Paperclip positioning: TOP of small Polaroid to LEFT BORDER of large Polaroid at vertical middle
-- Paperclip purpose: Bridges diagonally between the two frames, showing they are clipped together
-- Shadows: Realistic drop shadows under all elements for depth
+1. **BIG POLAROID (MAIN COLORING IMAGE)**
+   - Contains: The provided coloring book page illustration (full portrait image)
+   - Size: Takes up 90% of the total canvas width and height
+   - Position: Centered in the canvas
+   - Polaroid Frame: Classic white border - 8px on sides/top, 25px white bottom border (for dog name)
+   - Shadow: Strong drop shadow underneath the big polaroid, visible on white background
+   - Dog Name: "${dogName}" written elegantly in semi-cursive font on the white bottom polaroid border in black ink
+   - Orientation: Portrait/vertical
 
-**Artistic Details:**
-- Professional, elegant composition
-- Suitable for Instagram marketing
-- No watermarks or text overlays (except dog's name on Polaroid)
-- High-quality, polished appearance
-- Color palette: Vibrant colored pencils, white background, natural photo colors
+2. **SMALL POLAROID (ORIGINAL DOG PHOTO)**
+   - Contains: The provided original dog photo
+   - Size: Approximately 25-30% the width of the big polaroid
+   - Position: CLIPPED FROM THE TOP OF BIG POLAROID
+     * Top edge: Positioned at approximately 25-35% down from top of big polaroid
+     * Left edge: Overlaps the LEFT EDGE of big polaroid, extending outward to the left
+     * The small polaroid should look like it's clipped/fastened to the big polaroid
+   - Polaroid Frame: Classic white border, same proportions as big polaroid
+   - Shadow: Subtle drop shadow to show depth
 
-This is a premium scrapbook-style composite with a VERY LARGE coloring book illustration that almost fills the canvas, featuring both the transformation (original to coloring) and decorative elements that suggest creativity and art.`;
+3. **PAPERCLIP (METAL FASTENER)**
+   - Style: Realistic metal paperclip, silver/gray color
+   - Size: 45-55px, proportional and realistic
+   - Positioning: CRITICAL
+     * Start point: At the TOP CENTER of the small polaroid
+     * End point: To the LEFT EDGE/BORDER of the big polaroid, approximately at the vertical middle of the big polaroid
+     * Path: Diagonal line connecting the small to big polaroid, showing they are clipped together
+   - Appearance: Should look like it's holding/fastening the two polaroids together
+   - Shadow: Subtle shadow beneath paperclip for 3D effect
+
+4. **COLORED PENCILS (OPTIONAL ACCENT)**
+   - If included: 2-3 colorful pencils (yellow, blue, pink, green)
+   - Position: Corner areas (NOT covering the main composition)
+   - Style: Realistic, sharp tips visible, 60-80px each
+   - Purpose: Subtle accent suggesting art/creativity
+
+**DESIGN PRINCIPLES:**
+- The big polaroid DOMINATES the composition (90% of canvas)
+- The small polaroid is SECONDARY, clipped/attached to big polaroid
+- Rough white paper background visible around edges
+- Professional, high-quality scrapbook aesthetic
+- Clear visual hierarchy: Big coloring > Small original > Background
+- All elements cast realistic shadows for depth
+- No text overlays except dog name on big polaroid border
+- Color palette: Natural dog colors + white + kraft paper + silver paperclip
+
+This layout showcases the transformation (original dog → coloring book page) in an artistic, professional scrapbook style suitable for Instagram marketing.`;
 
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
