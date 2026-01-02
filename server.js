@@ -162,18 +162,45 @@ CRITICAL STYLE INSTRUCTIONS: The final output must be a high-quality, greyscale 
   });
 
   const candidate = response.candidates?.[0];
+  console.log('🔍 Gemini response candidate:', JSON.stringify(candidate, null, 2));
+  
   if (candidate?.content?.parts) {
-    for (const part of candidate.content.parts) {
+    console.log('📦 Response parts:', candidate.content.parts.length);
+    for (let i = 0; i < candidate.content.parts.length; i++) {
+      const part = candidate.content.parts[i];
+      console.log(`  Part ${i}:`, Object.keys(part));
+      
+      // Try inlineData format
       if (part.inlineData && part.inlineData.data) {
+        console.log('✅ Found inlineData format');
         return {
           base64: part.inlineData.data,
           mimeType: part.inlineData.mimeType
         };
       }
+      
+      // Try direct base64 field
+      if (part.base64) {
+        console.log('✅ Found base64 field');
+        return {
+          base64: part.base64,
+          mimeType: part.mimeType || 'image/png'
+        };
+      }
+      
+      // Try imageData field
+      if (part.imageData) {
+        console.log('✅ Found imageData field');
+        return {
+          base64: part.imageData.data || part.imageData,
+          mimeType: part.imageData.mimeType || 'image/png'
+        };
+      }
     }
   }
 
-  throw new Error('Failed to generate image');
+  console.error('❌ No image data found in response. Full response:', JSON.stringify(response, null, 2));
+  throw new Error('Failed to generate image - no image data in Gemini response');
 }
 
 async function prepareImageForGeneration(imageInput) {
@@ -411,12 +438,16 @@ Generate the composite image exactly as described.`;
     });
 
     const candidate = response.candidates?.[0];
+    console.log('🔍 Marketing image response candidate:', JSON.stringify(candidate, null, 2));
+    
     if (candidate?.content?.parts) {
-      for (const part of candidate.content.parts) {
+      console.log('📦 Response parts:', candidate.content.parts.length);
+      for (let i = 0; i < candidate.content.parts.length; i++) {
+        const part = candidate.content.parts[i];
+        console.log(`  Part ${i}:`, Object.keys(part));
+        
         if (part.inlineData && part.inlineData.data) {
           console.log('✅ Marketing image created successfully!');
-          
-          // Log to N8N (fire and forget)
           logToN8N({
             status: 'success',
             dogName,
@@ -424,7 +455,6 @@ Generate the composite image exactly as described.`;
             template: 'customizable',
             mimeType: part.inlineData.mimeType
           });
-
           return res.json({
             success: true,
             imageBase64: part.inlineData.data,
@@ -432,10 +462,28 @@ Generate the composite image exactly as described.`;
             template: 'customizable'
           });
         }
+        
+        if (part.base64) {
+          console.log('✅ Marketing image created successfully! (base64 format)');
+          logToN8N({
+            status: 'success',
+            dogName,
+            compositeImageBase64: part.base64,
+            template: 'customizable',
+            mimeType: part.mimeType || 'image/png'
+          });
+          return res.json({
+            success: true,
+            imageBase64: part.base64,
+            mimeType: part.mimeType || 'image/png',
+            template: 'customizable'
+          });
+        }
       }
     }
 
-    throw new Error('Failed to generate marketing image');
+    console.error('❌ No image data in marketing response:', JSON.stringify(response, null, 2));
+    throw new Error('Failed to generate marketing image - no image data in response');
 
   } catch (error) {
     console.error('❌ Error creating marketing image:', error.message);
@@ -536,12 +584,16 @@ This is a premium scrapbook-style composite with a VERY LARGE coloring book illu
     });
 
     const candidate = response.candidates?.[0];
+    console.log('🔍 Polaroid composite response candidate:', JSON.stringify(candidate, null, 2));
+    
     if (candidate?.content?.parts) {
-      for (const part of candidate.content.parts) {
+      console.log('📦 Response parts:', candidate.content.parts.length);
+      for (let i = 0; i < candidate.content.parts.length; i++) {
+        const part = candidate.content.parts[i];
+        console.log(`  Part ${i}:`, Object.keys(part));
+        
         if (part.inlineData && part.inlineData.data) {
           console.log('✅ Polaroid composite created successfully!');
-          
-          // Log to N8N (fire and forget)
           logToN8N({
             status: 'success',
             dogName,
@@ -549,7 +601,6 @@ This is a premium scrapbook-style composite with a VERY LARGE coloring book illu
             template: 'polaroid',
             mimeType: part.inlineData.mimeType
           });
-
           return res.json({
             success: true,
             imageBase64: part.inlineData.data,
@@ -557,10 +608,28 @@ This is a premium scrapbook-style composite with a VERY LARGE coloring book illu
             template: 'polaroid'
           });
         }
+        
+        if (part.base64) {
+          console.log('✅ Polaroid composite created successfully! (base64 format)');
+          logToN8N({
+            status: 'success',
+            dogName,
+            compositeImageBase64: part.base64,
+            template: 'polaroid',
+            mimeType: part.mimeType || 'image/png'
+          });
+          return res.json({
+            success: true,
+            imageBase64: part.base64,
+            mimeType: part.mimeType || 'image/png',
+            template: 'polaroid'
+          });
+        }
       }
     }
 
-    throw new Error('Failed to generate composite image');
+    console.error('❌ No image data in Polaroid response:', JSON.stringify(response, null, 2));
+    throw new Error('Failed to generate composite image - no image data in response');
 
   } catch (error) {
     console.error('❌ Error creating Polaroid composite:', error.message);
