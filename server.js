@@ -533,50 +533,56 @@ app.post('/api/generate-marketing-composite', async (req, res) => {
       }
     };
 
-    const prompt = `Create a premium scrapbook-style marketing composite for dog coloring books. This is a sophisticated Instagram post with precise layout specifications.
+    const prompt = `Create a premium scrapbook-style marketing composite for dog coloring books. This is a sophisticated Instagram post with very specific layout requirements.
 
 **CANVAS:** 1080x1080px square
 
-**BACKGROUND:** CRITICAL - Must have visible rough, textured kraft paper appearance with:
-- Visible paper grain texture (NOT smooth or plain)
-- Color variation (aged/vintage look with slight brown/tan spots)
-- Paper fiber details visible
-- Authentic weathered scrapbook paper aesthetic
-- This is the most important visual element after the big polaroid
+**BACKGROUND:** CRITICAL - Crumpled, heavily textured kraft paper that looks WORN and USED:
+- Heavily crumpled/wrinkled surface (like paper folded and unfolded many times)
+- Visible creases and fold lines throughout
+- Weathered, aged appearance (not smooth or polished)
+- Color: Kraft/beige with darker creases and shadows in the wrinkles
+- Texture must show the paper has been handled, used, and worn over time
+- This is NOT subtle grain - this is OBVIOUS heavy crumpling/creasing
+- Like a piece of paper that's been in someone's pocket or backpack for months
 
 **LAYOUT - EXACT SPECIFICATIONS:**
 
-1. **BIG POLAROID (MAIN COLORING IMAGE) - THE DOMINANT ELEMENT**
+1. **BIG POLAROID (MAIN COLORING IMAGE) - FILLS THE CANVAS**
    - Contains: The provided coloring book page illustration
-   - Size: VERY LARGE - occupies 80-85% of the entire canvas space
-   - Position: Centered, with minimal white space around it
-   - Polaroid Frame: White border - 6px sides/top, 20px bottom
+   - Size: 95-99% of the entire canvas (fills almost the entire space)
+   - Position: Centered with minimal white space/margins
+   - Polaroid Frame: White border - 4-6px sides/top, 18-20px bottom white border
    - Dog Name: "${dogName}" in elegant black script on the white bottom border
-   - Shadow: Strong drop shadow underneath
-   - The coloring page should be EXTREMELY PROMINENT and take up most of the visible space
+   - Shadow: Drop shadow visible on crumpled background
+   - The coloring page should completely dominate and almost fill the entire canvas
 
-2. **SMALL POLAROID (ORIGINAL DOG PHOTO) - SECONDARY ACCENT**
+2. **SMALL POLAROID (ORIGINAL DOG PHOTO) - SECONDARY ELEMENT**
    - Contains: Original dog photo
-   - Size: 15-20% the width of big polaroid (very small)
-   - Position: Left side, vertically centered (50% down from top)
-   - Overlap: Slightly overlaps the left edge of big polaroid
-   - Shadow: Subtle
+   - Size: 12-18% the width of big polaroid (quite small)
+   - Position: Left side, positioned so it overlaps the big polaroid
+   - Polaroid Frame: White border, minimal proportions
+   - Shadow: Subtle drop shadow
 
-3. **PAPERCLIP - SMALL FASTENER**
-   - Size: 20-30px (SMALL, not prominent)
-   - Position: At vertical middle (50%) of big polaroid's left edge
-   - Style: Realistic metal, silver/gray
-   - Purpose: Functional fastener, not decorative
+3. **PAPERCLIP - DIAGONAL FASTENER**
+   - Size: 20-28px (small, functional)
+   - Material: Realistic metal, silver/gray color
+   - **Positioning - CRITICAL - DIAGONAL CONNECTION:**
+     * Start point: Horizontal-middle (center width) of small polaroid, Vertical-top (top edge) of small polaroid
+     * End point: Horizontal-left-end-edge of big polaroid, Vertical-middle (50% height) of big polaroid
+     * Path: Diagonal line connecting these two points
+     * Visual effect: The paperclip appears to be fastening/clipping the small polaroid to the large one
+   - Shadow: Subtle 3D shadow
 
 **CRITICAL REQUIREMENTS:**
-- NO PENCILS OR COLORED PENCILS ANYWHERE - completely remove
-- NO decorative elements besides the two polaroids and paperclip
-- BIG POLAROID must be 80-85% of canvas (NOT 60%)
-- BACKGROUND must show visible paper texture/grain (NOT plain white)
-- PAPERCLIP must be 20-30px (smaller than current)
-- Clean, minimal composition focused on the transformation
+- NO PENCILS - completely absent
+- Big polaroid = 95-99% of canvas (almost fills entire space)
+- Background = heavily CRUMPLED paper texture (not grain, not smooth - obvious heavy creasing and wrinkles)
+- Paperclip = diagonal from TOP-CENTER of small polaroid to LEFT-MIDDLE of big polaroid
+- Clean, minimal, focused on the two polaroids and textured background
+- The crumpled texture and large big polaroid are the most important visual elements
 
-This is a scrapbook-style transformation showcase with textured background and clean layout.`;
+This is a worn, vintage scrapbook-style transformation showcase.`;
 
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
